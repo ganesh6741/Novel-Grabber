@@ -16,9 +16,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class scribblehub_com implements Source {
-    private final String name = "Scribble Hub";
-    private final String url = "https://scribblehub.com";
-    private final boolean canHeadless = false;
+    private static final String NAME = "Scribble Hub";
+    private static final String URL = "https://scribblehub.com";
+    private static final boolean CAN_HEADLESS = false;
     private Novel novel;
     private Document toc;
 
@@ -29,26 +29,36 @@ public class scribblehub_com implements Source {
     public scribblehub_com() {
     }
 
+    @Override
     public String getName() {
-        return name;
+        return NAME;
     }
 
+    @Override
     public boolean canHeadless() {
-        return canHeadless;
+        return CAN_HEADLESS;
     }
 
+    @Override
     public String toString() {
-        return name;
+        return NAME;
     }
 
+    @Override
     public String getUrl() {
-        return url;
+        return URL;
     }
 
+    @Override
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0").cookies(novel.cookies).cookie("toc_show", "9999").timeout(30 * 1000).get();
+            toc = Jsoup.connect(novel.novelLink)
+                    .userAgent("Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0")
+                    .cookies(novel.cookies)
+                    .cookie("toc_show", "9999")
+                    .timeout(30 * 1000)
+                    .get();
             for (Element chapterLink : toc.select("a.toc_a")) {
                 chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
             }
@@ -63,10 +73,13 @@ public class scribblehub_com implements Source {
         return chapterList;
     }
 
+    @Override
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).cookies(novel.cookies).get();
+            Document doc = Jsoup.connect(chapter.chapterURL)
+                    .cookies(novel.cookies)
+                    .get();
             chapterBody = doc.select("#chp_raw").first();
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
@@ -76,9 +89,9 @@ public class scribblehub_com implements Source {
         return chapterBody;
     }
 
+    @Override
     public NovelMetadata getMetadata() {
         NovelMetadata metadata = new NovelMetadata();
-
         if (toc != null) {
             metadata.setTitle(toc.select(".fic_title").first().text());
             metadata.setAuthor(toc.select(".auth_name_fic").first().text());
@@ -92,13 +105,11 @@ public class scribblehub_com implements Source {
             }
             metadata.setSubjects(subjects);
         }
-
         return metadata;
     }
 
+    @Override
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
-        return blacklistedTags;
+        return new ArrayList<>();
     }
-
 }
